@@ -143,7 +143,7 @@ svg { display: block; }
   display: grid; place-items: center;
   border-radius: 18px;
   background: var(--surface-3);
-  font-size: 40px; line-height: 1;
+  font-size: 46px; line-height: 1;
 }
 .tuile-texte { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .tuile-titre { font-size: 19px; font-weight: 650; letter-spacing: -.015em; }
@@ -263,12 +263,12 @@ svg { display: block; }
   overflow: hidden;
 }
 .face.arriere { transform: rotateY(180deg); background: var(--surface-2); }
-.glyphe { font-size: 150px; line-height: 1; }
-.glyphe.long { font-size: 112px; letter-spacing: -.04em; }
-.glyphe.kanji { font-size: 168px; }
+.glyphe { font-size: 190px; line-height: 1; }
+.glyphe.long { font-size: 140px; letter-spacing: -.04em; }
+.glyphe.kanji { font-size: 205px; }
 .face-legende { position: absolute; bottom: 20px; left: 0; right: 0; color: var(--muted); font-size: 14px; line-height: 1.35; }
 .face-legende small { display: block; font-size: 12.5px; opacity: .8; }
-.glyphe-petit { font-size: 46px; line-height: 1; color: var(--muted); margin-bottom: 14px; }
+.glyphe-petit { font-size: 56px; line-height: 1; color: var(--muted); margin-bottom: 14px; }
 .romaji { font-size: 76px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
 .note { margin: 20px 0 0; color: var(--muted); font-size: 15px; max-width: 26ch; }
 .sens { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 22px; }
@@ -313,8 +313,8 @@ svg { display: block; }
 }
 .question-consigne { color: var(--muted); font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 .question-texte { line-height: 1.05; }
-.question-texte.jp { font-size: 128px; }
-.question-texte.jp.long { font-size: 100px; }
+.question-texte.jp { font-size: 165px; }
+.question-texte.jp.long { font-size: 128px; }
 .question-texte.romaji-q { font-size: 72px; font-weight: 700; letter-spacing: -.03em; }
 .question-texte.fr-q { font-size: 38px; font-weight: 700; letter-spacing: -.02em; max-width: 16ch; }
 .choix { display: grid; gap: 10px; flex: none; }
@@ -333,7 +333,7 @@ svg { display: block; }
 .option:active:not(:disabled) { transform: scale(.97); background: var(--surface-3); }
 @media (hover: hover) { .option:hover:not(:disabled) { background: var(--surface-2); border-color: rgba(255, 255, 255, .3); } }
 .option-texte { font-size: 24px; font-weight: 650; line-height: 1.15; }
-.option-texte.jp { font-size: 46px; line-height: 1; font-weight: 600; }
+.option-texte.jp { font-size: 58px; line-height: 1; font-weight: 600; }
 .option-texte.fr-o { font-size: 18px; }
 .option-sous { display: none; font-size: 14px; color: var(--muted); font-weight: 600; }
 .option-sous.jp { font-size: 20px; }
@@ -371,9 +371,9 @@ svg { display: block; }
 .a-propos p + p { margin-top: 10px; }
 
 @media (max-height: 700px) {
-  .glyphe { font-size: 120px; } .glyphe.kanji { font-size: 136px; } .glyphe.long { font-size: 92px; }
-  .question-texte.jp { font-size: 100px; } .question-texte.romaji-q { font-size: 58px; }
-  .option { min-height: 64px; } .option-texte.jp { font-size: 38px; }
+  .glyphe { font-size: 150px; } .glyphe.kanji { font-size: 165px; } .glyphe.long { font-size: 112px; }
+  .question-texte.jp { font-size: 125px; } .question-texte.jp.long { font-size: 100px; } .question-texte.romaji-q { font-size: 58px; }
+  .option { min-height: 64px; } .option-texte.jp { font-size: 46px; }
   .romaji { font-size: 62px; } .sens { font-size: 28px; margin-bottom: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
