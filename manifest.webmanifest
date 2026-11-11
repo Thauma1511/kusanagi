@@ -1,0 +1,16 @@
+{
+  "name": "Kusanagi",
+  "short_name": "Kusanagi",
+  "description": "Apprendre l'écriture japonaise : hiragana, katakana et kanji.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#111012",
+  "theme_color": "#111012",
+  "lang": "fr",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
