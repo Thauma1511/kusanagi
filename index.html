@@ -342,6 +342,11 @@ svg { display: block; }
 .repondu .option:not(.juste):not(.faux) { opacity: .55; }
 .option.juste { background: var(--ok-fond); border-color: var(--ok); }
 .option.faux { background: var(--ko-fond); border-color: var(--ko); }
+.option-duel { min-height: 190px; border-radius: 24px; }
+.option-duel .option-texte.jp { font-size: 112px; }
+.duel .repondu .option.autre { opacity: 1; }
+.duel .repondu .option-sous { font-size: 20px; color: var(--text); }
+.duel .question-consigne { text-transform: none; letter-spacing: 0; font-size: 16px; }
 .apres { flex: none; display: flex; flex-direction: column; gap: 12px; padding-top: 14px; animation: fondu .25s ease both; }
 .explication { margin: 0; font-size: 15px; color: var(--muted); text-align: center; min-height: 22px; }
 .explication b { color: var(--text); }
@@ -373,7 +378,7 @@ svg { display: block; }
 @media (max-height: 700px) {
   .glyphe { font-size: 150px; } .glyphe.kanji { font-size: 165px; } .glyphe.long { font-size: 112px; }
   .question-texte.jp { font-size: 125px; } .question-texte.jp.long { font-size: 100px; } .question-texte.romaji-q { font-size: 58px; }
-  .option { min-height: 64px; } .option-texte.jp { font-size: 46px; }
+  .option { min-height: 64px; } .option-duel { min-height: 150px; } .option-duel .option-texte.jp { font-size: 88px; } .option-texte.jp { font-size: 46px; }
   .romaji { font-size: 62px; } .sens { font-size: 28px; margin-bottom: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {

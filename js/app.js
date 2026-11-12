@@ -188,7 +188,10 @@
     const g = d.glyphe;
     const pool = itemsChoisis(id);
     const s = stats(id, pool);
-    const n = Math.min(store.reglages.taille, pool.length);
+    const duelsDispo = pairesDuel(id).length;
+    const enDuel = e.mode === 'duels';
+    const n = Math.min(store.reglages.taille, enDuel ? duelsDispo : pool.length);
+    const peutCommencer = enDuel ? duelsDispo > 0 : pool.length > 0;
     const presse = (v) => `aria-pressed="${v}"`;
     const sens = d.type === 'kanji'
       ? [['avant', `<span class="jp">${g}</span> → français`], ['inverse', `français → <span class="jp">${g}</span>`]]
@@ -220,18 +223,22 @@
         <div class="segment" data-groupe="mode">
           <button data-val="cartes" ${presse(e.mode === 'cartes')}>Cartes</button>
           <button data-val="qcm" ${presse(e.mode === 'qcm')}>QCM</button>
+          <button data-val="duels" ${presse(e.mode === 'duels')}>Duels</button>
         </div>
         <p class="aide-mode">${e.mode === 'cartes'
           ? 'Touche la carte pour voir la réponse, puis glisse-la : à droite si tu savais, à gauche sinon.'
-          : 'Trouve la bonne réponse parmi les choix. Les pièges sont des caractères qui se ressemblent.'}</p>
+          : e.mode === 'qcm' ? 'Trouve la bonne réponse parmi les choix. Les pièges sont des caractères qui se ressemblent.'
+            : `Deux ${d.type === 'kanji' ? 'kanji' : 'caractères'} presque identiques : choisis celui qui correspond ${d.type === 'kanji' ? 'au sens' : 'au son'}, puis compare-les.`}</p>
         ${e.mode === 'qcm' ? `<div class="options-qcm">
           <div class="option-ligne"><span>Sens</span><div class="segment" data-groupe="sens">${sens.map(([v, t]) => `<button data-val="${v}" ${presse(e.sens === v)}>${t}</button>`).join('')}</div></div>
           <div class="option-ligne"><span>Choix</span><div class="segment" data-groupe="choix">${[2, 3, 4].map((v) => `<button data-val="${v}" ${presse(e.choix === v)}>${v}</button>`).join('')}</div></div>
         </div>` : ''}
       </section>
       <div class="pied">
-        <p class="resume">${pool.length ? morceaux.join(' · ') : 'Choisis au moins un niveau.'}</p>
-        <button class="btn-primaire" data-action="commencer" ${pool.length ? '' : 'disabled'}>Commencer · ${n} carte${n > 1 ? 's' : ''}</button>
+        <p class="resume">${!pool.length ? 'Choisis au moins un niveau.'
+          : enDuel ? (duelsDispo ? `${duelsDispo} paire${duelsDispo > 1 ? 's' : ''} de sosies dans ces niveaux` : 'Pas de sosies dans ces niveaux : choisis « De base » ou « Avec accents ».')
+            : morceaux.join(' · ')}</p>
+        <button class="btn-primaire" data-action="commencer" ${peutCommencer ? '' : 'disabled'}>Commencer · ${n} ${enDuel ? 'duel' : 'carte'}${n > 1 ? 's' : ''}</button>
       </div>
     </main>`, anim);
     el.addEventListener('click', (ev) => {
@@ -261,8 +268,9 @@
   let session = null;
   function lancer(id) {
     const e = etat(id);
-    session = { id, d: deck(id), mode: e.mode, sens: e.sens, choix: e.choix, items: composer(id), i: 0, resultats: [] };
-    if (session.mode === 'qcm') qcm(); else cartes();
+    const items = e.mode === 'duels' ? composerDuels(id) : composer(id);
+    session = { id, d: deck(id), mode: e.mode, sens: e.sens, choix: e.choix, items, i: 0, resultats: [] };
+    if (session.mode === 'qcm') qcm(); else if (session.mode === 'duels') duels(); else cartes();
   }
   const enteteSession = () => `<header class="barre-session">
       <button class="icone-btn" data-action="quitter" aria-label="Quitter la session">${ICONES.fermer}</button>
@@ -522,6 +530,100 @@
         const n = Number(ev.key);
         if (!repondu && n >= 1 && n <= options.length) { ev.preventDefault(); repondre(n - 1); }
         else if (repondu && (ev.key === 'Enter' || ev.key === ' ' || ev.key === 'ArrowRight')) { ev.preventDefault(); suivant(); }
+        else if (ev.key === 'Escape') quitter();
+      };
+    }
+    function suivant() { session.i += 1; poser(); }
+    btnSuivant.addEventListener('click', suivant);
+    if (!session.items.length) return resultats();
+    poser();
+  }
+
+  /* ----- Mode duels ----- */
+  // Paires de sosies dont les deux caractères sont dans les niveaux choisis
+  function pairesDuel(id) {
+    const choisis = new Map(itemsChoisis(id).map((it) => [it.c, it]));
+    return (DUELS[id] || '').split(' ').map((p) => [...p]).filter(([a, b]) => choisis.has(a) && choisis.has(b))
+      .map(([a, b]) => ({ cle: a + b, a: choisis.get(a), b: choisis.get(b) }));
+  }
+  // Même logique de répétition espacée que les cartes, mais par paire
+  function composerDuels(id) {
+    const e = etat(id);
+    e.duels = e.duels || {};
+    const num = (e.sessionDuels || 0) + 1;
+    const taille = store.reglages.taille;
+    const paires = melanger(pairesDuel(id));
+    const f = (p) => e.duels[p.cle];
+    const vues = paires.filter(f);
+    let lot = vues.filter((p) => f(p).n <= num).sort((x, y) => f(x).b - f(y).b || f(x).n - f(y).n).slice(0, taille);
+    if (lot.length < taille) lot = lot.concat(paires.filter((p) => !f(p)).slice(0, taille - lot.length));
+    if (lot.length < taille) lot = lot.concat(vues.filter((p) => !lot.includes(p)).sort((x, y) => f(x).n - f(y).n).slice(0, taille - lot.length));
+    e.sessionDuels = num;
+    sauver();
+    return melanger(lot).map((p) => ({ ...p, rep: Math.random() < 0.5 ? p.a : p.b }));
+  }
+  function noterDuel(id, cle, ok) {
+    const e = etat(id);
+    const s = e.duels[cle] || { b: 0, n: 0 };
+    s.b = ok ? Math.min(s.b + 1, 5) : 0;
+    s.n = e.sessionDuels + ECARTS[s.b];
+    e.duels[cle] = s;
+    sauver();
+  }
+
+  function duels() {
+    const { d } = session;
+    const kanji = d.type === 'kanji';
+    const el = afficher(`<main class="ecran session qcm duel">
+      ${enteteSession()}
+      <div class="question"></div>
+      <div class="choix c2"></div>
+      <div class="apres" hidden><p class="explication"></p><button class="btn-primaire" data-action="suivant">Suivant</button></div>
+    </main>`, 'fondu');
+    el.querySelector('[data-action="quitter"]').addEventListener('click', quitter);
+    const zQ = el.querySelector('.question');
+    const zC = el.querySelector('.choix');
+    const zA = el.querySelector('.apres');
+    const zE = el.querySelector('.explication');
+    const btnSuivant = zA.querySelector('button');
+    let repondu = false;
+
+    function poser() {
+      if (session.i >= session.items.length) return resultats();
+      repondu = false;
+      majProgression(el);
+      const duel = session.items[session.i];
+      const it = duel.rep;
+      const options = Math.random() < 0.5 ? [duel.a, duel.b] : [duel.b, duel.a];
+      zQ.innerHTML = `<span class="question-consigne">${kanji ? 'Lequel veut dire' : 'Lequel se lit'}</span>
+        <span class="question-texte ${kanji ? 'fr-q' : 'romaji-q'}">${esc(reponseTexte(d, it))}</span>`;
+      zC.classList.remove('repondu');
+      zC.innerHTML = options.map((o, k) => `<button class="option option-duel" data-k="${k}"><span class="option-texte jp">${o.c}</span><span class="option-sous">${esc(reponseTexte(d, o))}</span></button>`).join('');
+      zA.hidden = true;
+      zQ.classList.remove('fondu'); void zQ.offsetWidth; zQ.classList.add('fondu');
+
+      const repondre = (k) => {
+        if (repondu) return;
+        repondu = true;
+        const choisi = options[k];
+        const ok = choisi === it;
+        noterDuel(session.id, duel.cle, ok);
+        session.resultats.push({ item: it, ok });
+        zC.classList.add('repondu');
+        [...zC.children].forEach((b, j) => {
+          b.disabled = true;
+          b.classList.add(options[j] === it ? 'juste' : (j === k ? 'faux' : 'autre'));
+        });
+        const autre = options.find((o) => o !== it);
+        zE.innerHTML = `${ok ? '<b class="verdict-ok">Juste.</b>' : '<b class="verdict-ko">Pas tout à fait.</b>'} <span class="jp">${it.c}</span> = ${esc(reponseTexte(d, it))}, <span class="jp">${autre.c}</span> = ${esc(reponseTexte(d, autre))}.`;
+        zA.hidden = false;
+        btnSuivant.focus({ preventScroll: true });
+      };
+      zC.onclick = (ev) => { const b = ev.target.closest('.option'); if (b && !b.disabled) repondre(Number(b.dataset.k)); };
+      clavier = (ev) => {
+        if (!repondu && (ev.key === '1' || ev.key === 'ArrowLeft')) { ev.preventDefault(); repondre(0); }
+        else if (!repondu && (ev.key === '2' || ev.key === 'ArrowRight')) { ev.preventDefault(); repondre(1); }
+        else if (repondu && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); suivant(); }
         else if (ev.key === 'Escape') quitter();
       };
     }

@@ -238,3 +238,10 @@ const BASES_ACCENTS = (() => {
   paires.split(' ').forEach((p) => { m[p[0]] = p[1]; });
   return m;
 })();
+
+/* Duels : paires de caractères qui se ressemblent beaucoup */
+const DUELS = {
+  hiragana: 'ぬめ あお ねれ れわ ねわ るろ はほ はけ さち さき いり こに たな くへ うら しつ まも ゆよ ばぱ びぴ ぶぷ べぺ ぼぽ',
+  katakana: 'シツ ソン シン ツソ クケ クタ ウワ フヌ スヌ コユ チテ ノメ アマ マム ルレ サセ セヤ オキ ナメ ラウ ワク ホネ ミシ バパ ビピ ブプ ベペ ボポ',
+  kanji: '人入 八入 大犬 天大 木本 日目 白百 白日 土王 王玉 千十 右石 左右 早草 夕名 九力 子字 学字 青生 林森 口日 虫中',
+};
