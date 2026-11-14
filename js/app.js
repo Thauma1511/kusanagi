@@ -41,6 +41,7 @@
     e.niveaux = e.niveaux.filter((n) => deck(id).niveaux.some((x) => x.id === n));
     return e;
   }
+  const aideOn = (d) => d.type === 'kanji' && etat(d.id).aide !== false;
   const itemsChoisis = (id) => { const e = etat(id); return deck(id).niveaux.filter((n) => e.niveaux.includes(n.id)).flatMap((n) => n.items); };
 
   /* ================= Répétition espacée =================
@@ -229,6 +230,8 @@
           ? 'Touche la carte pour voir la réponse, puis glisse-la : à droite si tu savais, à gauche sinon.'
           : e.mode === 'qcm' ? 'Trouve la bonne réponse parmi les choix. Les pièges sont des caractères qui se ressemblent.'
             : `Deux ${d.type === 'kanji' ? 'kanji' : 'caractères'} presque identiques : choisis celui qui correspond ${d.type === 'kanji' ? 'au sens' : 'au son'}, puis compare-les.`}</p>
+        ${d.type === 'kanji' ? `<div class="options-qcm"><div class="option-ligne"><span>Aide</span><div class="segment" data-groupe="aide">
+          <button data-val="oui" ${presse(e.aide !== false)}>Avec image</button><button data-val="non" ${presse(e.aide === false)}>Kanji seul</button></div></div></div>` : ''}
         ${e.mode === 'qcm' ? `<div class="options-qcm">
           <div class="option-ligne"><span>Sens</span><div class="segment" data-groupe="sens">${sens.map(([v, t]) => `<button data-val="${v}" ${presse(e.sens === v)}>${t}</button>`).join('')}</div></div>
           <div class="option-ligne"><span>Choix</span><div class="segment" data-groupe="choix">${[2, 3, 4].map((v) => `<button data-val="${v}" ${presse(e.choix === v)}>${v}</button>`).join('')}</div></div>
@@ -258,6 +261,7 @@
         if (groupe === 'mode') e.mode = v;
         if (groupe === 'sens') e.sens = v;
         if (groupe === 'choix') e.choix = Number(v);
+        if (groupe === 'aide') e.aide = v === 'oui';
         sauver();
         ecranDeck(id, null);
       }
@@ -287,7 +291,7 @@
   /* ----- Mode cartes ----- */
   function faceAvant(d, it) {
     return `<div class="face avant">
-      <span class="glyphe jp ${classeGlyphe(d, it)}">${it.c}</span>
+      ${it.img && aideOn(d) ? `<img class="illu" src="${it.img}" alt="" draggable="false">` : `<span class="glyphe jp ${classeGlyphe(d, it)}">${it.c}</span>`}
       <span class="face-legende">${d.type === 'kanji' ? 'Que veut-il dire ?' : 'Quel son ?'}<small>Touche la carte pour la retourner</small></span>
     </div>`;
   }
@@ -302,6 +306,7 @@
           <div><dt>Lecture chinoise <small>(on)</small></dt><dd>${lectures(it.on)}</dd></div>
         </dl>
         ${oku ? '<p class="legende-oku">En plus clair : la partie écrite en hiragana.</p>' : ''}
+        ${it.aide && aideOn(d) ? `<p class="aide-phrase">${esc(it.aide)}</p>` : ''}
       </div>`;
     }
     return `<div class="face arriere">
@@ -496,7 +501,8 @@
       const consigne = kanji ? (inverse ? 'Quel kanji ?' : 'Que veut-il dire ?') : (inverse ? 'Quel caractère ?' : 'Quel son ?');
       const question = inverse
         ? `<span class="question-texte ${kanji ? 'fr-q' : 'romaji-q'}">${esc(reponseTexte(d, it))}</span>`
-        : `<span class="question-texte jp ${[...it.c].length > 1 ? 'long' : ''}">${it.c}</span>`;
+        : it.img && aideOn(d) ? `<img class="question-illu" src="${it.img}" alt="">`
+          : `<span class="question-texte jp ${[...it.c].length > 1 ? 'long' : ''}">${it.c}</span>`;
       zQ.innerHTML = `<span class="question-consigne">${consigne}</span>${question}`;
       const longs = kanji && !inverse;
       const cols = options.length === 3 ? (longs ? 'c1' : 'c3') : 'c2';
@@ -518,7 +524,7 @@
           if (options[j] === it) b.classList.add('juste');
           else if (j === k) b.classList.add('faux');
         });
-        const details = kanji ? `<span class="lect">Japonaise : ${lectures(it.kun)} · chinoise : ${lectures(it.on)}</span>` : '';
+        const details = kanji ? `<span class="lect">Japonaise : ${lectures(it.kun)} · chinoise : ${lectures(it.on)}</span>${it.aide && aideOn(d) ? `<span class="lect">${esc(it.aide)}</span>` : ''}` : '';
         zE.innerHTML = ok
           ? `<b class="verdict-ok">Juste.</b> ${nom(it)}.${details}`
           : `<b class="verdict-ko">Pas tout à fait.</b> Tu as choisi ${nom(choisi)}. La bonne réponse : ${nom(it)}.${details}`;

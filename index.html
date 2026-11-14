@@ -270,6 +270,9 @@ svg { display: block; }
 .face-legende small { display: block; font-size: 12.5px; opacity: .8; }
 .glyphe-petit { font-size: 56px; line-height: 1; color: var(--muted); margin-bottom: 14px; }
 .romaji { font-size: 76px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
+.illu { width: min(100%, 300px); aspect-ratio: 1; border-radius: 22px; margin-bottom: 34px; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.question-illu { width: min(62vw, 250px); aspect-ratio: 1; border-radius: 22px; }
+.aide-phrase { margin: 14px 0 0; padding: 10px 14px; border-radius: 14px; background: rgba(229, 83, 61, .12); color: var(--text); font-size: 14px; max-width: 280px; }
 .note { margin: 20px 0 0; color: var(--muted); font-size: 15px; max-width: 26ch; }
 .sens { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 22px; }
 .lectures { margin: 0; width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 12px; }
@@ -379,6 +382,7 @@ svg { display: block; }
   .glyphe { font-size: 150px; } .glyphe.kanji { font-size: 165px; } .glyphe.long { font-size: 112px; }
   .question-texte.jp { font-size: 125px; } .question-texte.jp.long { font-size: 100px; } .question-texte.romaji-q { font-size: 58px; }
   .option { min-height: 64px; } .option-duel { min-height: 150px; } .option-duel .option-texte.jp { font-size: 88px; } .option-texte.jp { font-size: 46px; }
+  .illu { width: min(100%, 230px); margin-bottom: 30px; } .question-illu { width: 190px; } .lectures div { padding: 7px 12px; } .sens { margin-bottom: 10px; }
   .romaji { font-size: 62px; } .sens { font-size: 28px; margin-bottom: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
