@@ -24,9 +24,9 @@
   function charger() {
     try {
       const s = JSON.parse(localStorage.getItem(CLE));
-      if (s && s.decks) return { decks: s.decks, reglages: { taille: 10, ...(s.reglages || {}) } };
+      if (s && s.decks) return { decks: s.decks, reglages: { taille: 10, conseils: true, ...(s.reglages || {}) } };
     } catch (e) { /* stockage indisponible */ }
-    return { decks: {}, reglages: { taille: 10 } };
+    return { decks: {}, reglages: { taille: 10, conseils: true } };
   }
   let store = charger();
   function sauver() { try { localStorage.setItem(CLE, JSON.stringify(store)); } catch (e) { /* ignoré */ } }
@@ -131,6 +131,55 @@
       if (out.length >= n) break;
     }
     return out;
+  }
+
+  /* ================= Conseils ================= */
+  const SOSIES = {};
+  Object.entries(DUELS).forEach(([id, liste]) => {
+    const m = SOSIES[id] = {};
+    liste.split(' ').forEach((p) => { const [a, b] = [...p]; (m[a] = m[a] || []).push(b); (m[b] = m[b] || []).push(a); });
+  });
+  const difference = (a, b) => DIFFERENCES[a + b] || DIFFERENCES[b + a] || ((BASES_ACCENTS[a] && BASES_ACCENTS[a] === BASES_ACCENTS[b]) ? 'Deux petits traits (゛) : son « b ». Petit rond (゜) : son « p ».' : '');
+  const parCar = (d, c) => tousItems(d).find((x) => x.c === c);
+  const sosiesDe = (d, it) => ((SOSIES[d.id] || {})[it.c] || []).map((c) => parCar(d, c)).filter(Boolean);
+  const HANDAKUTEN = 'ぱぴぷぺぽパピプペポ';
+  function astuce(d, it) {
+    if (d.type === 'kanji') return aideOn(d) ? (it.aide || '') : '';
+    if (ASTUCES[it.c]) return ASTUCES[it.c];
+    const cs = [...it.c];
+    if (cs.length === 1 && BASES_ACCENTS[it.c]) {
+      const base = parCar(d, BASES_ACCENTS[it.c]);
+      if (it.c === 'ヴ') return 'ウ avec deux petits traits (゛) : le son « v » des mots étrangers.';
+      if (!base) return '';
+      return HANDAKUTEN.includes(it.c)
+        ? `${base.c} (${base.r}) avec un petit rond (゜) : le son devient « ${it.r} ».`
+        : `${base.c} (${base.r}) avec deux petits traits (゛) : le son se durcit en « ${it.r} ».`;
+    }
+    if (cs.length === 2) return `${cs[0]} suivi d’un petit ${cs[1]} : les deux sons fusionnent en « ${it.r} ».`;
+    return '';
+  }
+  function statut(d, it) {
+    const s = etat(d.id).cartes[it.c];
+    if (!s) return 'Première rencontre : prends le temps d’observer sa forme.';
+    const rates = s.vu - s.ok;
+    if (s.b === 0) {
+      const sos = sosiesDe(d, it)[0];
+      const methode = sos && s.vu % 2 ? `Compare-la avec ${sos.c} en mode Duels.` : METHODES[s.vu % METHODES.length];
+      return `${rates > 1 ? `Ratée ${rates} fois sur ${s.vu}.` : 'Ratée la dernière fois.'} ${methode}`;
+    }
+    if (s.b >= MAITRISE) return `Bien ancrée : elle revient de plus en plus rarement.${it.img && aideOn(d) ? ' Essaie de la reconnaître en « Kanji seul ».' : ''}`;
+    return `Réussie ${s.b} fois de suite : encore ${MAITRISE - s.b} pour la maîtriser.`;
+  }
+  function blocConseil(d, it) {
+    if (store.reglages.conseils === false) return it.aide && aideOn(d) ? `<div class="conseil"><p class="conseil-astuce">${esc(it.aide)}</p></div>` : '';
+    const a = astuce(d, it);
+    const sos = sosiesDe(d, it).slice(0, 2);
+    const diff = sos.length ? difference(it.c, sos[0].c) : '';
+    return `<div class="conseil">
+      ${a ? `<p class="conseil-astuce"><b>Astuce</b>${esc(a)}</p>` : ''}
+      ${sos.length ? `<p class="conseil-sosie"><b>${sos.length > 1 ? 'Sosies' : 'Sosie'}</b>${sos.map((x) => `<span class="jp">${x.c}</span> (${esc(reponseTexte(d, x))})`).join(', ')}${diff ? `. ${esc(diff)}` : ''}</p>` : ''}
+      <p class="conseil-statut">${esc(statut(d, it))}</p>
+    </div>`;
   }
 
   /* ================= Affichage ================= */
@@ -302,17 +351,18 @@
         <span class="glyphe-petit jp">${it.c}</span>
         <span class="sens">${esc(it.fr)}</span>
         <dl class="lectures">
-          <div><dt>Lecture japonaise <small>(kun)</small></dt><dd>${lectures(it.kun)}</dd></div>
-          <div><dt>Lecture chinoise <small>(on)</small></dt><dd>${lectures(it.on)}</dd></div>
+          <div><dt>Japonaise <small>(kun)</small></dt><dd>${lectures(it.kun)}</dd></div>
+          <div><dt>Chinoise <small>(on)</small></dt><dd>${lectures(it.on)}</dd></div>
         </dl>
         ${oku ? '<p class="legende-oku">En plus clair : la partie écrite en hiragana.</p>' : ''}
-        ${it.aide && aideOn(d) ? `<p class="aide-phrase">${esc(it.aide)}</p>` : ''}
+        ${blocConseil(d, it)}
       </div>`;
     }
     return `<div class="face arriere">
       <span class="glyphe-petit jp">${it.c}</span>
       <span class="romaji">${esc(it.r)}</span>
       ${it.note ? `<p class="note">${esc(it.note)}</p>` : ''}
+      ${blocConseil(d, it)}
     </div>`;
   }
 
@@ -524,7 +574,11 @@
           if (options[j] === it) b.classList.add('juste');
           else if (j === k) b.classList.add('faux');
         });
-        const details = kanji ? `<span class="lect">Japonaise : ${lectures(it.kun)} · chinoise : ${lectures(it.on)}</span>${it.aide && aideOn(d) ? `<span class="lect">${esc(it.aide)}</span>` : ''}` : '';
+        const cons = store.reglages.conseils !== false;
+        const diff = cons && !ok ? difference(it.c, choisi.c) : '';
+        const ast = kanji ? (it.aide && aideOn(d) ? it.aide : '') : (cons ? astuce(d, it) : '');
+        const details = (kanji ? `<span class="lect">Japonaise : ${lectures(it.kun)} · chinoise : ${lectures(it.on)}</span>` : '')
+          + (diff ? `<span class="lect"><b>Différence :</b> ${esc(diff)}</span>` : (ast ? `<span class="lect">${esc(ast)}</span>` : ''));
         zE.innerHTML = ok
           ? `<b class="verdict-ok">Juste.</b> ${nom(it)}.${details}`
           : `<b class="verdict-ko">Pas tout à fait.</b> Tu as choisi ${nom(choisi)}. La bonne réponse : ${nom(it)}.${details}`;
@@ -621,7 +675,7 @@
           b.classList.add(options[j] === it ? 'juste' : (j === k ? 'faux' : 'autre'));
         });
         const autre = options.find((o) => o !== it);
-        zE.innerHTML = `${ok ? '<b class="verdict-ok">Juste.</b>' : '<b class="verdict-ko">Pas tout à fait.</b>'} <span class="jp">${it.c}</span> = ${esc(reponseTexte(d, it))}, <span class="jp">${autre.c}</span> = ${esc(reponseTexte(d, autre))}.`;
+        zE.innerHTML = `${ok ? '<b class="verdict-ok">Juste.</b>' : '<b class="verdict-ko">Pas tout à fait.</b>'} <span class="jp">${it.c}</span> = ${esc(reponseTexte(d, it))}, <span class="jp">${autre.c}</span> = ${esc(reponseTexte(d, autre))}.${store.reglages.conseils !== false && difference(it.c, autre.c) ? `<span class="lect">${esc(difference(it.c, autre.c))}</span>` : ''}`;
         zA.hidden = false;
         btnSuivant.focus({ preventScroll: true });
       };
@@ -640,6 +694,28 @@
   }
 
   /* ---------- Résultats ---------- */
+  // Un ou deux conseils adaptés à ce qui vient de se passer
+  function conseilsSession(sus, rates) {
+    const { d, id, mode, sens, resultats: r } = session;
+    const out = [];
+    const taux = r.length ? sus / r.length : 0;
+    const st = stats(id, itemsChoisis(id));
+    if (rates.length && mode !== 'duels') {
+      const paires = pairesDuel(id);
+      for (const { item } of rates) {
+        const p = paires.find((x) => x.a.c === item.c || x.b.c === item.c);
+        if (p) { const autre = p.a.c === item.c ? p.b : p.a; out.push({ t: `Tu as buté sur <span class="jp">${item.c}</span> : il ressemble beaucoup à <span class="jp">${autre.c}</span> (${esc(reponseTexte(d, autre))}). Une série de Duels aide à les distinguer.`, duels: true }); break; }
+      }
+    }
+    if (r.length >= 5 && taux < 0.5 && store.reglages.taille > 5) out.push({ t: 'Séance difficile, et c’est normal au début. Des sessions de 5 cartes, plus souvent, marchent mieux qu’une longue séance : tu peux changer la taille dans les réglages.' });
+    if (!rates.length && r.length && mode === 'cartes') out.push({ t: 'Sans faute. En mode Cartes, tu te notes toi-même : un QCM permet de vérifier que tu ne te fais pas de cadeau.' });
+    if (!rates.length && r.length && mode === 'qcm' && sens === 'avant') out.push({ t: `Sans faute. Le sens inverse (${d.type === 'kanji' ? 'français' : 'romaji'} → caractère) est plus exigeant : essaie-le.` });
+    if (d.type === 'kanji' && aideOn(d) && r.length && taux >= 0.8 && mode !== 'duels') out.push({ t: 'Tu reconnais bien ces kanji avec l’image. Passe en « Kanji seul » pour vérifier sans aide.' });
+    if (st.nouveaux === 0 && st.total && st.maitrises / st.total >= 0.8) out.push({ t: `Ces niveaux sont presque maîtrisés (${st.maitrises} sur ${st.total}). Tu peux cocher le niveau suivant.` });
+    else if (!rates.length && st.nouveaux > 0 && mode !== 'duels') out.push({ t: `Il reste ${st.nouveaux} carte${st.nouveaux > 1 ? 's' : ''} nouvelle${st.nouveaux > 1 ? 's' : ''} dans tes niveaux : elles arrivent aux prochaines sessions.` });
+    if (rates.length && !out.length) out.push({ t: 'Relis l’astuce de chaque carte ratée avant de relancer : elles reviennent dès la prochaine session.' });
+    return out.slice(0, 2);
+  }
   function resultats() {
     const { d, resultats: r, id } = session;
     const sus = r.filter((x) => x.ok).length;
@@ -647,19 +723,24 @@
     const message = !r.length ? 'Aucune carte dans cette session.'
       : rates.length ? 'Les cartes ratées reviendront à la prochaine session.'
         : 'Tout est su. Ces cartes reviendront plus tard pour vérifier que c’est bien ancré.';
+    const cons = store.reglages.conseils !== false;
+    const avis = cons ? conseilsSession(sus, rates) : [];
     const el = afficher(`<main class="ecran resultats">
       <div class="resultat-tete">
         <div class="resultat-chiffre">${sus}<span> / ${r.length}</span></div>
         <h2>Session terminée</h2>
         <p>${message}</p>
       </div>
-      ${rates.length ? `<section class="bloc"><h3 class="bloc-titre">À revoir</h3><div class="puces">${rates.map(({ item }) => `<span class="puce"><span class="jp">${item.c}</span><span>${esc(reponseTexte(d, item))}</span></span>`).join('')}</div></section>` : ''}
+      ${avis.length ? `<section class="bloc"><h3 class="bloc-titre">${avis.length > 1 ? 'Conseils' : 'Conseil'}</h3><div class="avis">${avis.map((a) => `<p>${a.t}</p>`).join('')}${avis.some((a) => a.duels) ? '<button class="btn-petit" data-action="duels">Faire des Duels</button>' : ''}</div></section>` : ''}
+      ${rates.length ? `<section class="bloc"><h3 class="bloc-titre">À revoir</h3><div class="liste revoir">${[...new Map(rates.map(({ item }) => [item.c, item])).values()].map((item) => `<div class="ligne-revoir"><span class="jp">${item.c}</span><span class="revoir-texte"><b>${esc(reponseTexte(d, item))}</b>${cons && astuce(d, item) ? `<small>${esc(astuce(d, item))}</small>` : ''}</span></div>`).join('')}</div></section>` : ''}
       <div class="pied">
         <button class="btn-primaire" data-action="encore">Nouvelle session</button>
         <button class="btn-secondaire" data-action="deck">Retour</button>
       </div>
     </main>`, 'fondu');
     el.querySelector('[data-action="encore"]').addEventListener('click', () => lancer(id));
+    const bd = el.querySelector('[data-action="duels"]');
+    if (bd) bd.addEventListener('click', () => { etat(id).mode = 'duels'; sauver(); lancer(id); });
     el.querySelector('[data-action="deck"]').addEventListener('click', () => { session = null; ecranDeck(id, 'entree-retour'); });
     clavier = (ev) => { if (ev.key === 'Escape') { session = null; ecranDeck(id, 'entree-retour'); } };
   }
@@ -684,13 +765,19 @@
         <p class="aide-mode">Nombre de cartes par session, en mode Cartes comme en QCM.</p>
       </section>
       <section class="bloc">
+        <h3 class="bloc-titre">Conseils</h3>
+        <div class="segment" data-groupe="conseils"><button data-val="oui" aria-pressed="${store.reglages.conseils !== false}">Affichés</button><button data-val="non" aria-pressed="${store.reglages.conseils === false}">Masqués</button></div>
+        <p class="aide-mode">Astuce de forme, sosies à ne pas confondre et suivi de chaque carte, au dos des cartes et en fin de session.</p>
+      </section>
+      <section class="bloc">
         <h3 class="bloc-titre">Progression</h3>
         <div class="liste">${lignes}</div>
       </section>
       <section class="bloc a-propos">
         <h3 class="bloc-titre">À propos</h3>
-        <p>Kusanagi <span class="jp">草薙</span> · version 1.0. Application personnelle, sans publicité ni pistage : ta progression reste sur ton téléphone.</p>
+        <p>Kusanagi <span class="jp">草薙</span> · version 1.1. Application personnelle, sans publicité ni pistage : ta progression reste sur ton téléphone.</p>
         <p>Caractères affichés avec la police Klee One (Fontworks), sous licence SIL Open Font License 1.1.</p>
+        <p>Illustrations des kanji dessinées à partir des tracés KanjiVG (© Ulrich Apel), sous licence Creative Commons BY-SA 3.0.</p>
       </section>
     </main>`, anim);
     el.addEventListener('click', (ev) => {
@@ -698,6 +785,7 @@
       if (!t || t.disabled) return;
       if (t.dataset.action === 'accueil') return accueil('entree-retour');
       if (t.parentElement.dataset.groupe === 'taille') { store.reglages.taille = Number(t.dataset.val); sauver(); return reglages(null); }
+      if (t.parentElement.dataset.groupe === 'conseils') { store.reglages.conseils = t.dataset.val === 'oui'; sauver(); return reglages(null); }
       if (t.dataset.reset) {
         const actions = t.parentElement;
         actions.innerHTML = `<button class="btn-petit" data-annuler>Annuler</button><button class="btn-petit attention" data-confirmer="${t.dataset.reset}">Tout effacer</button>`;

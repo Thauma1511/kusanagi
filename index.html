@@ -272,14 +272,26 @@ svg { display: block; }
 .romaji { font-size: 76px; font-weight: 700; letter-spacing: -.03em; line-height: 1; }
 .illu { width: min(100%, 300px); aspect-ratio: 1; border-radius: 22px; margin-bottom: 34px; pointer-events: none; user-select: none; -webkit-user-drag: none; }
 .question-illu { width: min(62vw, 250px); aspect-ratio: 1; border-radius: 22px; }
-.aide-phrase { margin: 14px 0 0; padding: 10px 14px; border-radius: 14px; background: rgba(229, 83, 61, .12); color: var(--text); font-size: 14px; max-width: 280px; }
+.conseil { width: 100%; max-width: 290px; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.conseil p { margin: 0; padding: 8px 12px; border-radius: 12px; font-size: 13.5px; line-height: 1.35; color: var(--text); }
+.conseil b { margin-right: 7px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #ffa890; }
+.conseil-astuce { background: rgba(229, 83, 61, .14); }
+.conseil-sosie { background: var(--surface-3); }
+.conseil-sosie b { color: var(--muted); }
+.conseil-sosie .jp { font-size: 17px; }
+.conseil p.conseil-statut { padding: 2px 4px 0; background: none; color: var(--muted); font-size: 12.5px; text-align: center; }
 .note { margin: 20px 0 0; color: var(--muted); font-size: 15px; max-width: 26ch; }
-.sens { font-size: 34px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 22px; }
-.lectures { margin: 0; width: 100%; max-width: 280px; display: flex; flex-direction: column; gap: 12px; }
-.lectures div { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-radius: 14px; background: var(--surface-3); }
-.lectures dt { color: var(--muted); font-size: 13px; }
-.lectures dt small { font-size: 12px; opacity: .85; }
-.lectures dd { margin: 0; font-size: 21px; font-weight: 650; }
+.sens { font-size: 30px; font-weight: 700; letter-spacing: -.02em; line-height: 1.1; margin-bottom: 14px; }
+.face.arriere { padding: 18px 16px; }
+.face.arriere .glyphe-petit { margin-bottom: 8px; }
+.face.arriere .romaji { font-size: 64px; }
+.face.arriere .note { margin-top: 10px; font-size: 13.5px; }
+.legende-oku { margin: 6px 0 0 !important; font-size: 11px !important; }
+.lectures { margin: 0; width: 100%; max-width: 290px; display: flex; gap: 8px; }
+.lectures div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; padding: 8px 8px; border-radius: 14px; background: var(--surface-3); }
+.lectures dt { color: var(--muted); font-size: 12px; }
+.lectures dt small { font-size: 11px; opacity: .85; }
+.lectures dd { margin: 0; font-size: 17px; font-weight: 650; line-height: 1.2; overflow-wrap: anywhere; }
 .oku { color: var(--muted); font-weight: 500; }
 .legende-oku { margin: 12px 0 0; color: var(--muted); font-size: 12px; }
 .tampon {
@@ -364,6 +376,18 @@ svg { display: block; }
 .resultat-chiffre span { font-size: 34px; color: var(--muted); font-weight: 700; }
 .resultat-tete h2 { margin: 14px 0 6px; font-size: 24px; letter-spacing: -.02em; }
 .resultat-tete p { margin: 0 auto; color: var(--muted); max-width: 32ch; }
+.ligne-revoir { display: flex; align-items: center; gap: 14px; padding: 10px 16px; }
+.ligne-revoir + .ligne-revoir { border-top: 1px solid var(--line); }
+.ligne-revoir > .jp { flex: none; min-width: 44px; font-size: 30px; line-height: 1; text-align: center; white-space: nowrap; }
+.revoir-texte { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.revoir-texte b { font-size: 16px; }
+.revoir-texte small { color: var(--muted); font-size: 13.5px; line-height: 1.35; }
+.avis { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px; border-radius: 18px; background: rgba(229, 83, 61, .1); border: 1px solid rgba(229, 83, 61, .25); }
+.avis p { margin: 0; font-size: 15px; line-height: 1.4; }
+.avis .jp { font-size: 18px; }
+.resultats .pied { position: sticky; bottom: 0; padding: 18px 0 0; background: linear-gradient(to bottom, rgba(17, 16, 18, 0), var(--bg) 22px); }
+.resultats .resultat-tete { padding: 28px 0 22px; }
+.explication .lect b { color: var(--text); }
 .puces { display: flex; flex-wrap: wrap; gap: 8px; }
 .puce { display: inline-flex; align-items: baseline; gap: 8px; padding: 8px 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); font-weight: 600; }
 .puce .jp { font-size: 22px; }
@@ -382,7 +406,9 @@ svg { display: block; }
   .glyphe { font-size: 150px; } .glyphe.kanji { font-size: 165px; } .glyphe.long { font-size: 112px; }
   .question-texte.jp { font-size: 125px; } .question-texte.jp.long { font-size: 100px; } .question-texte.romaji-q { font-size: 58px; }
   .option { min-height: 64px; } .option-duel { min-height: 150px; } .option-duel .option-texte.jp { font-size: 88px; } .option-texte.jp { font-size: 46px; }
-  .illu { width: min(100%, 230px); margin-bottom: 30px; } .question-illu { width: 190px; } .lectures div { padding: 7px 12px; } .sens { margin-bottom: 10px; }
+  .illu { width: min(100%, 230px); margin-bottom: 30px; } .question-illu { width: 170px; } .lectures div { padding: 6px 8px; } .sens { margin-bottom: 8px; }
+  .face.arriere { padding: 12px 14px; } .face.arriere .glyphe-petit { font-size: 40px; margin-bottom: 4px; } .face.arriere .romaji { font-size: 50px; }
+  .conseil { margin-top: 8px; gap: 5px; } .conseil p { padding: 6px 10px; font-size: 12.5px; }
   .romaji { font-size: 62px; } .sens { font-size: 28px; margin-bottom: 14px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -395,6 +421,7 @@ svg { display: block; }
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="logo" viewBox="14 14 72 72"><circle cx="50" cy="50" r="27" fill="none" stroke="#F4EFE6" stroke-width="3"/><path d="M27 73 Q55 47 80 18 Q61 47 30.5 76 Z" fill="#E5533D" stroke="#111012" stroke-width="3.2" stroke-linejoin="round" paint-order="stroke"/><path d="M23.5 70.5 L32.5 79.5" stroke="#F4EFE6" stroke-width="2.6" stroke-linecap="round"/><path d="M28 75 L19 84" stroke="#F4EFE6" stroke-width="4.2" stroke-linecap="round"/></symbol></svg>
 <div id="app"></div>
 <script src="js/data.js"></script>
+<script src="js/conseils.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

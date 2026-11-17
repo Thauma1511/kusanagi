@@ -9,3 +9,5 @@ Application personnelle pour apprendre l'écriture japonaise : hiragana, katakan
 Application web installable sur iPhone (Safari › Partager › Sur l'écran d'accueil), fonctionne hors ligne, sans pub ni pistage.
 
 Police des caractères : [Klee One](https://github.com/fontworks-fonts/Klee) (Fontworks), sous licence SIL Open Font License 1.1.
+
+Illustrations des kanji (dossier `kanji/`) dessinées à partir des tracés [KanjiVG](https://kanjivg.tagaini.net) (© Ulrich Apel), sous licence Creative Commons BY-SA 3.0, comme les images elles-mêmes.
